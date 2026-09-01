@@ -1,24 +1,48 @@
 # DSH shared-room
 
-Status: draft independent capability selected for retention while `super-injector` retires. No realization lock is accepted.
+Status: draft product map for the independent shared-room capability retained while `super-injector` retires. The alpha.2 candidate is installed but not yet accepted through a realization lock.
 
-## Intent
+## Product direction
 
-Provide a reusable shared communication room for multiple agents as an independently installed DeepSeek Harness plugin. Agent Games may compose with it, while the room remains independent of any particular game, role, model, or adjudication rule.
+Give multiple Agents a durable shared room where each member can publish events, consume only its own unread increment, and maintain member state without the coordinator manually copying conversation deltas. The room is reusable infrastructure: Agent Games may compose with it, but it contains no game-specific roles or rules.
 
-## Acceptance
+## Required capabilities and verification
 
 - The plugin can be installed and removed through ordinary profile composition without `super-injector`.
-- Agents can create or join a room, publish messages, and retrieve messages they have not yet consumed.
-- Room state survives the running plugin lifecycle expected by the selected deployment.
+- `shared_room create` creates a unique room, makes the calling session its sole owner and first member, and returns the room id plus enough instruction for another Agent to join and participate.
+- `join` registers another session and is idempotent for an existing member. Posting, reading or changing member state requires current membership.
+- `say` appends a public message without advancing the sender's unread cursor. Multiline message content remains content rather than being interpreted as room control data.
+- `check` returns only public events the calling member has not yet acknowledged and advances only that member's cursor. Other members retain their own unread increments.
+- The room has one stable owner. The owner can remove an obsolete non-owner member; a non-owner cannot remove members, and the owner cannot be removed through that action.
+- `shared_room_state` lets a member set its own JSON-valued state. The owner can read one current member or list all current members; ordinary members cannot inspect another member's private state.
+- Member state remains outside the public unread event stream. A display-name convention may affect event presentation without replacing stable session identity or authorization.
+- Room events, membership, member state and unread positions survive plugin reload and Web restart through durable storage. Removing a member clears that member's state and unread responsibility; rejoining starts a new membership state.
 - Agent Games can use the capability without owning it, and either plugin can remain installed without the other.
 - Retiring `super-injector` does not remove or duplicate the capability.
 
-## Constraints and decisions
+Relevant verification uses several real sessions to exercise create, repeated join, say/check ordering, independent cursors, member state authorization, owner removal and restart recovery. Source inspection or a single-session tool call is insufficient.
+
+## Current alpha.2 realization map
+
+- Identify and preserve the deployment's existing room-storage directory before changing the package or profile. Treat its contents as user runtime data, not rebuild output.
+- Build the package against the selected Harness source checkout so its declarations and runtime imports resolve the same alpha.2 tool APIs as the profile.
+- Install the package checkout through `dsh plugin --profile <name> add <checkout>`. Its package manifest must contribute its own Bundle patch, and the profile must contain both the dependency and the Bundle membership.
+- Restart the profile after Bundle membership changes. Confirm the composed config contains exactly one `dsh-shared-room` row and no injector-owned duplicate.
+- Perform the multi-session and restart observations above against a disposable room before accepting a realization; preserve pre-existing rooms throughout verification.
+
+## Conditional avoidance
 
 - Session identity and room data must not be inferred from display order or game-specific roles.
-- Exact actions, event fields, persistence format, member-state rules, owner controls, and message presentation are not yet user-locked behavior.
-- Builds and structural checks are implementation evidence. User observation on the real profile decides semantic acceptance.
+- A member's `say` must not silently acknowledge unread input; otherwise turn-order strategies become impossible.
+- Public message reads must not expose another member's private state, and state reads must not move public unread cursors.
+- Reload compaction may discard acknowledged in-memory delivery entries but must not lose the durable information needed to reconstruct current room behavior.
+- Storage corruption or an unsupported format must fail visibly rather than silently resetting a room.
+
+## Conditional decisions
+
+- The exact durable byte format and in-memory algorithm may change while the confirmed behavior and existing rooms are preserved. A target that cannot migrate existing rooms requires a user decision before replacement.
+- Private messaging, ownership transfer, game-specific state and built-in adjudication require separate intent; do not infer them from generic member state.
+- Exact event fields and visual formatting may follow the target unless a user correction makes one part of the retained behavior.
 
 ## Non-goals
 

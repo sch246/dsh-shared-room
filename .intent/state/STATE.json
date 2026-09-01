@@ -1,11 +1,12 @@
 {
   "$schema": "meta-intent/0.2/state",
   "id": "dsh-shared-room",
-  "revision": "0.1.0-draft.1",
+  "revision": "0.1.0-draft.2",
   "status": "draft",
   "document": "STATE.md",
   "logs": [
-    "../logs/2026-09-01-retention-authority.md"
+    "../logs/2026-09-01-retention-authority.md",
+    "../logs/2026-09-01-room-behavior-confirmation.md"
   ],
   "protocol": {
     "id": "meta-intent",

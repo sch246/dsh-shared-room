@@ -38,11 +38,13 @@ Relevant verification uses several real sessions to exercise create, repeated jo
 - Reload compaction may discard acknowledged in-memory delivery entries but must not lose the durable information needed to reconstruct current room behavior.
 - Storage corruption or an unsupported format must fail visibly rather than silently resetting a room.
 
-## Conditional decisions
+## Target-dependent commitments
 
-- The exact durable byte format and in-memory algorithm may change while the confirmed behavior and existing rooms are preserved. A target that cannot migrate existing rooms requires a user decision before replacement.
-- Private messaging, ownership transfer, game-specific state and built-in adjudication require separate intent; do not infer them from generic member state.
-- Exact event fields and visual formatting may follow the target unless a user correction makes one part of the retained behavior.
+- When maintenance targets a deployment with existing rooms, their current behavior and data remain in scope across format or implementation changes. A fresh deployment with no prior rooms has no migration obligation.
+- When Agent Games is installed and a selected game declares shared-room composition, the generic room remains available to that workflow. Without Agent Games, shared-room does not recreate game concepts.
+- When the target exposes a distinct display-name concept, room presentation may project it while stable session identity continues to own membership and authorization. A target without display names does not need a synthetic naming subsystem.
+
+Private messaging, ownership transfer, game-specific state and built-in adjudication require separate intent; generic member state does not imply them. Exact event fields, durable bytes and visual formatting are not yet locked behavior.
 
 ## Non-goals
 

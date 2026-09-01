@@ -1,0 +1,4 @@
+- insert:
+    - id: dsh-shared-room
+      name: '@dsh-external/dsh-shared-room'
+      config: {}

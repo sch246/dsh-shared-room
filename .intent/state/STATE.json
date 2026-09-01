@@ -1,0 +1,29 @@
+{
+  "$schema": "meta-intent/0.2/state",
+  "id": "dsh-shared-room",
+  "revision": "0.1.0-draft.1",
+  "status": "draft",
+  "document": "STATE.md",
+  "logs": [
+    "../logs/2026-09-01-retention-authority.md"
+  ],
+  "protocol": {
+    "id": "meta-intent",
+    "revision": "0.2",
+    "package": "meta-intent",
+    "lock": "locks/protocol-0.2/LOCK.json",
+    "artifactDigest": "sha256:a5ce1e0acacac0e313f3f281256cd79d5d6aa2ba6cf7a5e62af7a385df2539fe",
+    "uri": "https://github.com/sch246/meta-intent.git"
+  },
+  "resources": [
+    {
+      "id": "target.deepseek-harness",
+      "kind": "git-repository",
+      "uri": "https://github.com/deepseek-ai/deepseek-harness.git",
+      "revision": "0a53fb55bea101816fa226bb964ae2bed71c343b",
+      "scope": "alpha.2-realization-target"
+    }
+  ],
+  "activeLocks": [],
+  "candidateLocks": []
+}

@@ -35,15 +35,6 @@ config:
 
 默认目录是 `~/.dsh/storages/dsh-shared-room/rooms`。
 
-## 构建与验证
+## 安装与维护
 
-```bash
-DSH_CHECKOUT=/root/deepseek-harness npm test
-```
-
-构建后可通过普通 profile 安装，不需要 `super-injector`：
-
-```bash
-cd /path/to/deepseek-harness
-DSH_HOME=<home> pnpm dsh plugin --profile web add /root/dsh-shared-room
-```
+构建、profile 安装、升级适配、卸载、数据保留和验证入口见 [STATE 安装维护地图](.intent/state/STATE.md#installation-and-maintenance-map)。STATE 区分用户要求保留的效果与当前实现；历史安装记录不代表当前部署已验证。

@@ -1,6 +1,6 @@
 # DSH shared-room
 
-Status: draft product map for the independent shared-room capability retained while `super-injector` retires. The alpha.2 candidate is installed but not yet accepted through a realization lock.
+Status: draft product map for the independent shared-room capability retained while `super-injector` retires. Earlier records report an installed alpha.2 candidate; its current deployment and semantic acceptance are not established here.
 
 ## Product direction
 
@@ -22,13 +22,48 @@ Give multiple Agents a durable shared room where each member can publish events,
 
 Relevant verification uses several real sessions to exercise create, repeated join, say/check ordering, independent cursors, member state authorization, owner removal and restart recovery. Source inspection or a single-session tool call is insufficient.
 
-## Current alpha.2 realization map
+## Installation and maintenance map
 
-- Identify and preserve the deployment's existing room-storage directory before changing the package or profile. Treat its contents as user runtime data, not rebuild output.
-- Build the package against the selected Harness source checkout so its declarations and runtime imports resolve the same alpha.2 tool APIs as the profile.
-- Install the package checkout through `dsh plugin --profile <name> add <checkout>`. Its package manifest must contribute its own Bundle patch, and the profile must contain both the dependency and the Bundle membership.
-- Restart the profile after Bundle membership changes. Confirm the composed config contains exactly one `dsh-shared-room` row and no injector-owned duplicate.
-- Perform the multi-session and restart observations above against a disposable room before accepting a realization; preserve pre-existing rooms throughout verification.
+The recorded target is Harness alpha.2 at the revision in `STATE.json.resources`; it is compatibility evidence, not a permanent runtime requirement or proof of the present deployment. No realization lock is selected. Start here for current effects and operations; selected LOGs explain consequential choices, and any historical LOCK is optional recovery evidence.
+
+### Sources, ownership and data
+
+`src/index.ts` registers the two room tools and `Config.roomsDir`; `src/store.ts` owns the durable room log, replay and file-locked operations. The default is `~/.dsh/storages/dsh-shared-room/rooms` from the OS home directory, independently of `DSH_HOME`. Set an explicit disposable `roomsDir` for probes. This package carries no Host patch or browser contribution.
+
+The [manifest](../../package.json), [Bundle patch](../../cordis.patch.yml) and [build script](../../scripts/build.sh) own the current executable paths. Read the selected Harness checkout’s `apps/cli/reference/README.md` for profile composition and `docs/development.md` for its build prerequisites. Build against the same checkout that will run the profile, with its dependencies and required peer artifacts ready. Build scripts create local dependency links and `lib/`; these are replaceable outputs, unlike runtime data.
+
+### Build, compose and remove
+
+Set absolute paths and the intended profile; run the build from this plugin checkout. The commands describe installation operations, not actions performed by this document update.
+
+```bash
+export DSH_CHECKOUT=/absolute/path/to/deepseek-harness
+export DSH_HOME=/absolute/path/to/dsh-home
+PROFILE=web
+PLUGIN=/absolute/path/to/dsh-shared-room
+cd "$PLUGIN"
+DSH_CHECKOUT="$DSH_CHECKOUT" bash scripts/build.sh
+cd "$DSH_CHECKOUT"
+pnpm dsh plugin --profile "$PROFILE" add "$PLUGIN"
+pnpm dsh plugin --profile "$PROFILE" why @dsh-external/dsh-shared-room
+pnpm dsh --profile "$PROFILE" --dump-config
+```
+
+For a requested removal, use the same environment and run from the Harness checkout:
+
+```bash
+pnpm dsh plugin --profile "$PROFILE" remove @dsh-external/dsh-shared-room
+```
+
+`dsh plugin` maintains the profile dependency, pnpm lockfile, installed resolution and `dsh.profile.bundles` together. After add/update/remove, inspect all four under `$DSH_HOME/profiles/$PROFILE` and the composed config: exactly one `dsh-shared-room` row when installed, none when removed. Later profile/home patches replace a row’s complete config, so preserve existing overrides. A running profile retains its startup Bundle set; activation needs an authorized restart, then a fresh-session check for duplicate tool owners, including residual `super-injector` entries. For first install or changed composition, validate a candidate with the target package set in a private Home before changing a managed profile.
+
+### Upgrade and verification
+
+After a Harness upgrade, inspect tool execution session identity and `dsh-atomic-write` locking before adapting these sources. Preserve existing room data and verify replay before changing formats; corruption must not become an empty room. Agent Games remains an optional consumer. Prefer current Host APIs; add an owned, reversible Host patch only for an otherwise unavailable required effect and retire the patch when upstream provides it.
+
+Run `DSH_CHECKOUT="$DSH_CHECKOUT" npm test` from this repository for build plus `tests/store.test.mjs` and `tests/tools.test.mjs`. Runtime acceptance still needs the multi-session and restart observations above, including non-member writes, non-owner state reads/kicks, owner self-removal refusal, multiline content, and malformed/truncated storage. Use disposable rooms and preserve existing files.
+
+Keep `roomsDir` and its logs. Removing the two tools must not remove Agent Games, Host sessions, or existing rooms; reinstallation can reuse the retained directory.
 
 ## Conditional avoidance
 
